@@ -1,8 +1,4 @@
-﻿
-// MFC_Assignment.cpp: 애플리케이션에 대한 클래스 동작을 정의합니다.
-//
-
-#include "pch.h"
+﻿#include "pch.h"
 #include "framework.h"
 #include "MFC_Assignment.h"
 #include "MFC_AssignmentDlg.h"
@@ -12,14 +8,14 @@
 #endif
 
 
-// CMFCAssignmentApp
+/*-----------------------------
+  CMFCAssignmentApp 앱 진입점
+-------------------------------*/
 
 BEGIN_MESSAGE_MAP(CMFCAssignmentApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
-
-// CMFCAssignmentApp 생성
 
 CMFCAssignmentApp::CMFCAssignmentApp()
 {
@@ -30,13 +26,7 @@ CMFCAssignmentApp::CMFCAssignmentApp()
 	// InitInstance에 모든 중요한 초기화 작업을 배치합니다.
 }
 
-
-// 유일한 CMFCAssignmentApp 개체입니다.
-
 CMFCAssignmentApp theApp;
-
-
-// CMFCAssignmentApp 초기화
 
 BOOL CMFCAssignmentApp::InitInstance()
 {
@@ -71,9 +61,11 @@ BOOL CMFCAssignmentApp::InitInstance()
 	// 적절한 내용으로 수정해야 합니다.
 	SetRegistryKey(_T("로컬 애플리케이션 마법사에서 생성된 애플리케이션"));
 
+
+	// CMFCAssignmentDlg 다이얼로그
 	CMFCAssignmentDlg dlg;
 	m_pMainWnd = &dlg;
-	INT_PTR nResponse = dlg.DoModal();
+	INT_PTR nResponse = dlg.DoModal(); // CMFCAssignmentDlg 다이얼로그 실행
 	if (nResponse == IDOK)
 	{
 		// TODO: 여기에 [확인]을 클릭하여 대화 상자가 없어질 때 처리할
