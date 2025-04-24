@@ -56,11 +56,12 @@ void CMFCAssignmentDlg::DoDataExchange(CDataExchange* pDX)
 { 
 	CDialogEx::DoDataExchange(pDX);							// 부모 클래스 바인딩
 	DDX_Control(pDX, IDC_EDIT_DOT_RADIUS, m_editRadius);	// Edit Control(클릭 지점 원 반지름) <-> m_editRadius 변수 연결
-	DDX_Control(pDX, IDC_EDIT_CIRCLE_THICKNESS, m_editThickness);	// Edit Control(정원 두께) <-> m_editThickness
 	DDX_Control(pDX, IDC_STATIC_POINT1, m_staticPoint1);	// Static Text(클릭 지점 좌표)
 	DDX_Control(pDX, IDC_STATIC_POINT2, m_staticPoint2);
 	DDX_Control(pDX, IDC_STATIC_POINT3, m_staticPoint3);
-
+	DDX_Control(pDX, IDC_EDIT_CIRCLE_THICKNESS, m_editThickness);	// Edit Control(정원 두께) <-> m_editThickness
+	DDX_Control(pDX, IDC_STATIC_CIRCLE_CENTER, m_staticCenter);
+	DDX_Control(pDX, IDC_STATIC_CIRCLE_RADIUS, m_staticRadius);
 }
 
 BEGIN_MESSAGE_MAP(CMFCAssignmentDlg, CDialogEx)
@@ -165,15 +166,16 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	// 3개 초과 시 무시
 	if (m_dots.Size() >= 3) return;
 
-	CString str;
+	CString radiusText;
 	// 클릭 지점 원 반지름
-	m_editRadius.GetWindowText(str);
-	m_radius = _ttoi(str);  // 문자열 → 정수 변환
+	m_editRadius.GetWindowText(radiusText);
+	m_radius = _ttoi(radiusText);  // 문자열 → 정수 변환
 	if (m_radius <= 0) m_radius = 10;
 
 	// 정원 두께
-	m_editThickness.GetWindowText(str); // 두께 입력값 가져오기
-	m_thickness = _ttoi(str);
+	CString thicknessText;
+	m_editThickness.GetWindowText(thicknessText); // 두께 입력값 가져오기
+	m_thickness = _ttoi(thicknessText);
 	if (m_thickness <= 0) m_thickness = 5;
 
 	// 클릭한 좌표 저장
@@ -203,6 +205,13 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 		if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
 		{
 			m_canvas.DrawCircle(center, radius, m_thickness); 
+
+			// 중심 좌표와 반지름 UI 표시
+			CString centerStr, radiusStr;
+			centerStr.Format(_T("정원 중심: (%d, %d)"), center.x, center.y);
+			radiusStr.Format(_T("정원 반지름: %.2f"), radius);
+			m_staticCenter.SetWindowText(centerStr);
+			m_staticRadius.SetWindowText(radiusStr);
 		}
 	}
 
@@ -226,8 +235,9 @@ void CMFCAssignmentDlg::OnBnClickedCancel()
 void CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer()
 {
 	InitCanvas();			// 캔버스 초기화
-	m_dots.Clear();  // 클릭 지점 좌표 초기화
-	ResetPointLabels();     // Static Text 초기화 추가
+	m_dots.Clear();			// 클릭 지점 좌표 초기화
+	ResetPointLabels();     // 클릭 지점 원 좌표 표시 라벨 초기화
+	ResetCircleLabels();	// 정원 정보 표시 라벨 초기화
 	Invalidate();			// 화면 갱신
 }
 
@@ -266,4 +276,10 @@ void CMFCAssignmentDlg::ResetPointLabels()
 	m_staticPoint1.SetWindowText(_T("클릭 지점 1: -"));
 	m_staticPoint2.SetWindowText(_T("클릭 지점 2: -"));
 	m_staticPoint3.SetWindowText(_T("클릭 지점 3: -"));
+}
+
+void CMFCAssignmentDlg::ResetCircleLabels()
+{
+	m_staticCenter.SetWindowText(_T("정원 중심: -"));
+	m_staticRadius.SetWindowText(_T("정원 반지름: -"));
 }

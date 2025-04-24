@@ -38,6 +38,7 @@ private:
 	void InitCanvas();
 	void UpdatePointLabels();
 	void ResetPointLabels();
+	void ResetCircleLabels();
 
 private:
 	Canvas m_canvas;			// 선택 지점 원, 세점을 잇는 원 등을 그릴 캔버스
@@ -56,4 +57,6 @@ private:
 
 	CEdit m_editThickness;		// 정원 외각선 두께
 	int m_thickness = 5;		// 외각선 기본값: 5
+	CStatic m_staticCenter;		// 정원 중심 좌표
+	CStatic m_staticRadius;		// 정원 반지름
 };
