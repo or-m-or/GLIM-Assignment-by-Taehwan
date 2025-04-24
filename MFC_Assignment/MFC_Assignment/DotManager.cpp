@@ -35,3 +35,13 @@ const std::vector<CPoint>& DotManager::GetPoints()
 {
 	return m_points;
 }
+
+bool DotManager::UpdatePoint(int idx, const CPoint& pt)
+{
+	if (0 <= idx && idx < static_cast<int>(m_points.size()))
+	{
+		m_points[idx] = pt;
+		return true;
+	}
+	return false;
+}

@@ -69,6 +69,8 @@ BEGIN_MESSAGE_MAP(CMFCAssignmentDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_WM_LBUTTONDOWN() // 마우스 클릭 시 처리 함수
+	ON_WM_MOUSEMOVE()	// 드래그
+	ON_WM_LBUTTONUP()	// 클릭 해제
 	ON_BN_CLICKED(IDOK, &CMFCAssignmentDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDCANCEL, &CMFCAssignmentDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BTN_INITIMAGE, &CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer)
@@ -163,17 +165,35 @@ HCURSOR CMFCAssignmentDlg::OnQueryDragIcon()
 // 마우스 클릭 시 클릭 지점 원 그리기
 void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	// 3개 초과 시 무시
-	if (m_dots.Size() >= 3) return;
+	if (m_dots.Size() >= 3)
+	{
+		bool found = false;
+		for (int i = 0; i < 3; ++i)
+		{
+			CPoint pt = m_dots.GetPoint(i);
+			CRect rect(pt.x - 5, pt.y - 5, pt.x + 5, pt.y + 5);
+			if (rect.PtInRect(point))
+			{
+				m_draggedIdx = i;	// 드래그 시작할 점 인덱스 저장
+				SetCapture();		// 마우스 캡처
+				found = true;
+				break;
+			}
+		}
 
-	CString radiusText;
-	// 클릭 지점 원 반지름
+		if (found) return;
+		else return; // 3개 클릭된 이후 다른 영역 클릭은 무시
+	}
+
+	// 클릭 지점 원 반지름, 정원 두께
+	CString radiusText, thicknessText;
+
+	// 반지름 입력
 	m_editRadius.GetWindowText(radiusText);
 	m_radius = _ttoi(radiusText);  // 문자열 → 정수 변환
 	if (m_radius <= 0) m_radius = 10;
 
-	// 정원 두께
-	CString thicknessText;
+	// 두께 입력
 	m_editThickness.GetWindowText(thicknessText); // 두께 입력값 가져오기
 	m_thickness = _ttoi(thicknessText);
 	if (m_thickness <= 0) m_thickness = 5;
@@ -282,4 +302,59 @@ void CMFCAssignmentDlg::ResetCircleLabels()
 {
 	m_staticCenter.SetWindowText(_T("정원 중심: -"));
 	m_staticRadius.SetWindowText(_T("정원 반지름: -"));
+}
+
+// 드래그 처리
+void CMFCAssignmentDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+	if (m_draggedIdx != -1 && (nFlags & MK_LBUTTON))
+	{
+		// 좌표 갱신
+		m_dots.UpdatePoint(m_draggedIdx, point);
+
+		// 캔버스 다시 그리기
+		m_canvas.Clear();
+
+		// 점 다시 그림
+		for (int i = 0; i < 3; ++i)
+		{
+			CPoint local = m_dots.GetPoint(i) - CPoint(m_drawX, m_drawY);
+			m_canvas.DrawDot(local.x, local.y, m_radius);
+		}
+
+		// 원 다시 그림
+		CPoint center;
+		double radius;
+		CPoint p1 = m_dots.GetPoint(0) - CPoint(m_drawX, m_drawY);
+		CPoint p2 = m_dots.GetPoint(1) - CPoint(m_drawX, m_drawY);
+		CPoint p3 = m_dots.GetPoint(2) - CPoint(m_drawX, m_drawY);
+
+		if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
+		{
+			m_canvas.DrawCircle(center, radius, m_thickness);
+
+			CString centerStr, radiusStr;
+			centerStr.Format(_T("정원 중심: (%d, %d)"), center.x, center.y);
+			radiusStr.Format(_T("정원 반지름: %.2f"), radius);
+			m_staticCenter.SetWindowText(centerStr);
+			m_staticRadius.SetWindowText(radiusStr);
+		}
+
+		UpdatePointLabels();
+		Invalidate(); // 화면 갱신
+		UpdateWindow();
+	}
+	CDialogEx::OnMouseMove(nFlags, point);
+}
+
+// 드래그 종료
+void CMFCAssignmentDlg::OnLButtonUp(UINT nFlags, CPoint point)
+{
+
+	if (m_draggedIdx != -1)
+	{
+		m_draggedIdx = -1;
+		ReleaseCapture(); // 마우스 캡처 해제
+	}
+	CDialogEx::OnLButtonUp(nFlags, point);
 }

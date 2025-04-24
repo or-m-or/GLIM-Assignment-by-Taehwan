@@ -39,6 +39,8 @@ private:
 	void UpdatePointLabels();
 	void ResetPointLabels();
 	void ResetCircleLabels();
+	void OnMouseMove(UINT nFlags, CPoint point); // 드래그 처리
+	void OnLButtonUp(UINT nFlags, CPoint point); // 드래그 종료 afx_msg...?
 
 private:
 	Canvas m_canvas;			// 선택 지점 원, 세점을 잇는 원 등을 그릴 캔버스
@@ -59,4 +61,7 @@ private:
 	int m_thickness = 5;		// 외각선 기본값: 5
 	CStatic m_staticCenter;		// 정원 중심 좌표
 	CStatic m_staticRadius;		// 정원 반지름
+
+	bool m_dragging = false;	// 드래그 여부
+	int m_draggedIdx = -1;		// 드래그 중인 점 인덱스(m_dots 중에서)
 };
