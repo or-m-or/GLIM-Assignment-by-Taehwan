@@ -183,14 +183,19 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Canvas.h" />
+    <ClInclude Include="DotManager.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MFC_Assignment.h" />
     <ClInclude Include="MFC_AssignmentDlg.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="DotManager.cpp" />
     <ClCompile Include="MFC_Assignment.cpp" />
     <ClCompile Include="MFC_AssignmentDlg.cpp" />
     <ClCompile Include="pch.cpp">
@@ -199,6 +204,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MFCAssignment.rc" />

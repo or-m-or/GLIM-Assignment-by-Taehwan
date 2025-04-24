@@ -3,6 +3,7 @@
 #include "MFC_Assignment.h"
 #include "MFC_AssignmentDlg.h"
 #include "afxdialogex.h"
+#include "Utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -32,20 +33,9 @@ public:
 	afx_msg void OnBnClickedOk();
 };
 
-CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
-{
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX)
-{
-	CDialogEx::DoDataExchange(pDX);
-}
-
-void CAboutDlg::OnBnClickedOk()
-{
-	CDialogEx::OnOK();
-}
-
+CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX) { }
+void CAboutDlg::DoDataExchange(CDataExchange* pDX) { CDialogEx::DoDataExchange(pDX); }
+void CAboutDlg::OnBnClickedOk() { CDialogEx::OnOK(); }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 	ON_BN_CLICKED(IDOK, &CAboutDlg::OnBnClickedOk)
@@ -114,7 +104,7 @@ BOOL CMFCAssignmentDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			
 	SetIcon(m_hIcon, FALSE);		
 
-	InitBackBuffer(); // 백버퍼 초기화
+	InitCanvas(); // 백버퍼 초기화
 	m_editRadius.SetWindowText(_T("10"));
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환
@@ -156,10 +146,8 @@ void CMFCAssignmentDlg::OnPaint()
 	}
 	else
 	{
-		// CDialogEx::OnPaint();
 		CPaintDC dc(this);
-		if (!m_backBuffer.IsNull())
-			m_backBuffer.Draw(dc, m_drawX, m_drawY); // 백버퍼 출력
+		m_canvas.Present(&dc, m_drawX, m_drawY);
 	}
 }
 
@@ -172,40 +160,58 @@ HCURSOR CMFCAssignmentDlg::OnQueryDragIcon()
 // 마우스 클릭 시 클릭 지점 원 그리기
 void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
+	// 3개 초과 시 무시
+	if (m_dots.Size() >= 3)
+		return;
+
 	CString str;
 	m_editRadius.GetWindowText(str);
 	m_radius = _ttoi(str);  // 문자열 → 정수 변환
 	if (m_radius <= 0) m_radius = 10;
 
-	// 클릭한 좌표를 최대 3개까지 저장
-	if (m_clickPoints.size() < 3)
-		m_clickPoints.push_back(point);
+	// 클릭한 좌표 저장
+	m_dots.Add(point);
 
 	// Static Text에 좌표 표시
 	UpdatePointLabels();
 
-	// 클릭 지점에서 백버퍼 내 좌표로 변환
-	int localX = point.x - m_drawX;
-	int localY = point.y - m_drawY;
+	// 클릭 지점에서 백버퍼 내 좌표로 계산
+	CPoint local(point.x - m_drawX, point.y - m_drawY);
 
 	// 백버퍼 영역 내에서만 그림
-	if (localX >= 0 && localY >= 0 
-		&& localX < m_backBuffer.GetWidth() 
-		&& localY < m_backBuffer.GetHeight())
+	if (local.x >= 0 && local.y >= 0 
+		&& local.x < m_canvas.GetWidth() 
+		&& local.y < m_canvas.GetHeight())
 	{
-		DrawDot(localX, localY, m_radius); // 점 그리기
-		Invalidate(); // 화면 갱신
+		m_canvas.DrawDot(local.x, local.y, m_radius); // 점 그리기
 	}
 
+	// 3점 클릭 시 정원 그리기
+	if (m_dots.Size() == 3)
+	{
+		CPoint p1 = m_dots.GetPoint(0) - CPoint(m_drawX, m_drawY);
+		CPoint p2 = m_dots.GetPoint(1) - CPoint(m_drawX, m_drawY);
+		CPoint p3 = m_dots.GetPoint(2) - CPoint(m_drawX, m_drawY);
+
+		CPoint center;
+		double radius;
+		if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
+		{
+			m_canvas.DrawCircle(center, radius, 3);  // 두께는 3으로 고정, 추후 수정 가능
+		}
+	}
+
+	Invalidate(); // 화면 갱신
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
+// OK 버튼 (닫기)
 void CMFCAssignmentDlg::OnBnClickedOk()
 {
 	CDialogEx::OnOK();
 }
 
-
+// 취소 버튼
 void CMFCAssignmentDlg::OnBnClickedCancel()
 {
 	CDialogEx::OnCancel();
@@ -214,81 +220,38 @@ void CMFCAssignmentDlg::OnBnClickedCancel()
 // 초기화 버튼
 void CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer()
 {
-	InitBackBuffer();		// 백버퍼 초기화
-	m_clickPoints.clear();  // 클릭 지점 좌표 초기화
+	InitCanvas();			// 캔버스 초기화
+	m_dots.Clear();  // 클릭 지점 좌표 초기화
 	ResetPointLabels();     // Static Text 초기화 추가
 	Invalidate();			// 화면 갱신
 }
 
-// 클릭 지점 원 그리는 함수
-// cx, cy: 클릭 위치 x, y 좌표
-void CMFCAssignmentDlg::DrawDot(int cx, int cy, int radius)
+void CMFCAssignmentDlg::InitCanvas()
 {
-	// 배경 생성 X
-	if (m_backBuffer.IsNull()) return;
-
-	// 배경의 가로, 세로 크기 및 한 줄 바이트 수(pitch) 가져옴
-	int width = m_backBuffer.GetWidth();
-	int height = m_backBuffer.GetHeight();
-	int pitch = m_backBuffer.GetPitch();
-
-	// 배경의 실제 픽셀 데이터 가져옴
-	unsigned char* buffer = (unsigned char*)m_backBuffer.GetBits();
-	 
-	// 클릭 지점 원 그릴 사각형 범위 계산 (cx-radius, cy-radius) ~ (cx+radius, cy+radius)
-	for (int y = cy - radius; y <= cy + radius; ++y)
-	{
-		for (int x = cx - radius; x <= cx + radius; ++x)
-		{
-			// 배경 범위 벗어나는 경우 무시
-			if (x < 0 || y < 0 || x >= width || y >= height) continue;
-
-			// 원의 방정식
-			int dx = x - cx;
-			int dy = y - cy;
-			if (dx * dx + dy * dy <= radius * radius)
-				buffer[y * pitch + x] = 0; // 원 안쪽 픽셀 색상 설정, 8bpp라서 0은 검정색
-		}
-	}
-}
-
-// CImage 초기화
-void CMFCAssignmentDlg::InitBackBuffer()
-{
-	// 백버퍼 이미 존재할 경우
-	if (!m_backBuffer.IsNull())
-		m_backBuffer.Destroy();
-
-	// 백버퍼 새로 생성
-	m_backBuffer.Create(m_bufferWidth, -m_bufferHeight, 8); // top-down 640x480 8bpp
-
-	// 팔레트 설정
-	RGBQUAD palette[256];
-	for (int i = 0; i < 256; ++i)
-		palette[i].rgbRed = palette[i].rgbGreen = palette[i].rgbBlue = i;
-	m_backBuffer.SetColorTable(0, 256, palette);
-
-	memset(m_backBuffer.GetBits(), 255, m_backBuffer.GetWidth() * m_backBuffer.GetHeight()); // 흰 배경
+	m_canvas.Init(m_bufferWidth, m_bufferHeight);
 }
 
 void CMFCAssignmentDlg::UpdatePointLabels()
 {
-	if (m_clickPoints.size() > 0)
+	if (m_dots.Size() > 0)
 	{
+		CPoint pt = m_dots.GetPoint(0);
 		CString txt;
-		txt.Format(_T("클릭 지점 1: (%d, %d)"), m_clickPoints[0].x, m_clickPoints[0].y);
+		txt.Format(_T("클릭 지점 1: (%d, %d)"), pt.x, pt.y);
 		m_staticPoint1.SetWindowText(txt);
 	}
-	if (m_clickPoints.size() > 1)
+	if (m_dots.Size() > 1)
 	{
+		CPoint pt = m_dots.GetPoint(1);
 		CString txt;
-		txt.Format(_T("클릭 지점 2: (%d, %d)"), m_clickPoints[1].x, m_clickPoints[1].y);
+		txt.Format(_T("클릭 지점 2: (%d, %d)"), pt.x, pt.y);
 		m_staticPoint2.SetWindowText(txt);
 	}
-	if (m_clickPoints.size() > 2)
+	if (m_dots.Size() > 2)
 	{
+		CPoint pt = m_dots.GetPoint(2);
 		CString txt;
-		txt.Format(_T("클릭 지점 3: (%d, %d)"), m_clickPoints[2].x, m_clickPoints[2].y);
+		txt.Format(_T("클릭 지점 3: (%d, %d)"), pt.x, pt.y);
 		m_staticPoint3.SetWindowText(txt);
 	}
 }
