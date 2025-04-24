@@ -56,6 +56,7 @@ void CMFCAssignmentDlg::DoDataExchange(CDataExchange* pDX)
 { 
 	CDialogEx::DoDataExchange(pDX);							// 부모 클래스 바인딩
 	DDX_Control(pDX, IDC_EDIT_DOT_RADIUS, m_editRadius);	// Edit Control(클릭 지점 원 반지름) <-> m_editRadius 변수 연결
+	DDX_Control(pDX, IDC_EDIT_CIRCLE_THICKNESS, m_editThickness);	// Edit Control(정원 두께) <-> m_editThickness
 	DDX_Control(pDX, IDC_STATIC_POINT1, m_staticPoint1);	// Static Text(클릭 지점 좌표)
 	DDX_Control(pDX, IDC_STATIC_POINT2, m_staticPoint2);
 	DDX_Control(pDX, IDC_STATIC_POINT3, m_staticPoint3);
@@ -105,7 +106,8 @@ BOOL CMFCAssignmentDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		
 
 	InitCanvas(); // 백버퍼 초기화
-	m_editRadius.SetWindowText(_T("10"));
+	m_editRadius.SetWindowText(_T("10"));	// 클릭 지점 원 반지름
+	m_editThickness.SetWindowText(_T("5")); // 정원 두께
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환
 }
@@ -161,19 +163,22 @@ HCURSOR CMFCAssignmentDlg::OnQueryDragIcon()
 void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// 3개 초과 시 무시
-	if (m_dots.Size() >= 3)
-		return;
+	if (m_dots.Size() >= 3) return;
 
 	CString str;
+	// 클릭 지점 원 반지름
 	m_editRadius.GetWindowText(str);
 	m_radius = _ttoi(str);  // 문자열 → 정수 변환
 	if (m_radius <= 0) m_radius = 10;
 
+	// 정원 두께
+	m_editThickness.GetWindowText(str); // 두께 입력값 가져오기
+	m_thickness = _ttoi(str);
+	if (m_thickness <= 0) m_thickness = 5;
+
 	// 클릭한 좌표 저장
 	m_dots.Add(point);
-
-	// Static Text에 좌표 표시
-	UpdatePointLabels();
+	UpdatePointLabels(); 	// Static Text에 좌표 표시
 
 	// 클릭 지점에서 백버퍼 내 좌표로 계산
 	CPoint local(point.x - m_drawX, point.y - m_drawY);
@@ -189,15 +194,15 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 	// 3점 클릭 시 정원 그리기
 	if (m_dots.Size() == 3)
 	{
+		CPoint center;
+		double radius;
 		CPoint p1 = m_dots.GetPoint(0) - CPoint(m_drawX, m_drawY);
 		CPoint p2 = m_dots.GetPoint(1) - CPoint(m_drawX, m_drawY);
 		CPoint p3 = m_dots.GetPoint(2) - CPoint(m_drawX, m_drawY);
 
-		CPoint center;
-		double radius;
 		if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
 		{
-			m_canvas.DrawCircle(center, radius, 3);  // 두께는 3으로 고정, 추후 수정 가능
+			m_canvas.DrawCircle(center, radius, m_thickness); 
 		}
 	}
 

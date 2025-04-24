@@ -52,6 +52,8 @@ private:
 	CStatic m_staticPoint1;		// 클릭 지점 좌표 표시용 Static Text
 	CStatic m_staticPoint2;
 	CStatic m_staticPoint3;
-
 	int m_radius = 10;			// 클릭 지점 원 반지름 기본값: 10
+
+	CEdit m_editThickness;		// 정원 외각선 두께
+	int m_thickness = 5;		// 외각선 기본값: 5
 };
