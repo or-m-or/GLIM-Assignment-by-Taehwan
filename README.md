@@ -42,6 +42,8 @@ GLIM SW 직군 과제물 - 허태환
 
 ## 2. Preview
 
+![Image](https://github.com/user-attachments/assets/954b7e94-b8e1-49bb-b6cf-b8ee318843c8)
+
 ---
 
 ## 3. Configuration
