@@ -2,7 +2,6 @@
 #include "Canvas.h"
 #include "DotManager.h"
 #include "LabelHelper.h"
-#include <thread>
 
 #define WM_RANDOM_MOVE (WM_USER + 1)
 #define WM_RANDOM_MOVE_DONE (WM_USER + 2)
@@ -31,10 +30,10 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);	// 마우스 클릭 처리
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point); // 드래그 처리
-	afx_msg void OnLButtonUp(UINT nFlags, CPoint point); // 드래그 종료 afx_msg...?
-	afx_msg LRESULT OnRandomMove(WPARAM wParam, LPARAM lParam);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);				// 마우스 클릭 처리
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);				// 드래그 처리
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);				// 드래그 종료
+	afx_msg LRESULT OnRandomMove(WPARAM wParam, LPARAM lParam);			
 	afx_msg LRESULT OnRandomMoveDone(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 

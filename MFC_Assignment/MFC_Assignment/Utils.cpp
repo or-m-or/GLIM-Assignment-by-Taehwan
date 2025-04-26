@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "Utils.h"
 
-// 세 점을 지나는 원의 중심 좌표(center)와 반지름(radius)를 계산
+/*-------------------------
+  Utils : 유틸리티 클래스
+--------------------------*/
+
 bool Utils::GetCircleFromThreePoints(const CPoint& p1, const CPoint& p2, const CPoint& p3, CPoint& center, double& radius)
 {
-    // 세 점의 좌표 추출
     int x1 = p1.x, y1 = p1.y;
     int x2 = p2.x, y2 = p2.y;
     int x3 = p3.x, y3 = p3.y;
@@ -19,7 +21,7 @@ bool Utils::GetCircleFromThreePoints(const CPoint& p1, const CPoint& p2, const C
     int d = 2 * (a1 * b2 - a2 * b1);
     if (d == 0) return false;  // 세 점이 일직선에 있음 → 원 없음
 
-    // 중점 공식에 따라 c1, c2를 계산
+    // c1, c2 계산
     int c1 = a1 * (x1 + x2) + b1 * (y1 + y2);
     int c2 = a2 * (x1 + x3) + b2 * (y1 + y3);
 
@@ -27,7 +29,7 @@ bool Utils::GetCircleFromThreePoints(const CPoint& p1, const CPoint& p2, const C
     int cx = (b2 * c1 - b1 * c2) / d;
     int cy = (a1 * c2 - a2 * c1) / d;
 
-    // 중심 좌표 저장
+    // 중심 좌표
     center = CPoint(cx, cy);
 
     // 반지름 = 중심에서 p1까지의 거리

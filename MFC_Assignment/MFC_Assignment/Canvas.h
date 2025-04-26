@@ -1,18 +1,22 @@
 #pragma once
 
+/*-----------------------------
+  Canvas : 백버퍼 관리 클래스
+-------------------------------*/
+
 class Canvas
 {
 public:
 	Canvas();
 	~Canvas();
 
-	bool Init();				// 캔버스 초기화
-	void SetSize(int width, int height);		// 캔버스 크기 설정
+	bool Init();														// 캔버스 초기화
+	void SetSize(int width, int height);								// 캔버스 크기 설정
 
-	void Clear();									// 캔버스 내용물 삭제
-	void DrawDot(int cx, int cy, int radius);			// 캔버스에 '클릭 지점 원' 그리기
-	void DrawCircle(CPoint center, double radius, int thickness = 1);
-	void Present(CDC* pDC, int drawX, int drawY);	// 캔버스에 그려진 내용 화면에 렌더링
+	void Clear();														// 캔버스 내용 삭제
+	void DrawDot(int cx, int cy, int radius);							// 캔버스에 '클릭 지점 원' 그리기
+	void DrawCircle(CPoint center, double radius, int thickness = 1);	// 세 점을 지나는 외곽선 원 그리기
+	void Present(CDC* pDC, int drawX, int drawY);						// 현재 캔버스에 그려진 내용을 화면에 렌더링
 
 	int GetWidth();		// 캔버스 가로 길이 반환
 	int GetHeight();	// 캔버스 세로 길이 반환

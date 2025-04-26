@@ -1,18 +1,12 @@
 #include "pch.h"
 #include "DotManager.h"
-#include "Canvas.h"
-#include "Utils.h"
-#include <cstdlib> // rand(), srand()
-#include <ctime>   // time()
-#include <random>
 
-DotManager::DotManager()
-{
-}
+/*-----------------------------------
+  DotManager : 클릭된 점 관리 클래스
+------------------------------------*/
 
-DotManager::~DotManager()
-{
-}
+DotManager::DotManager() { }
+DotManager::~DotManager() { }
 
 void DotManager::Add(const CPoint& pt)
 {
@@ -55,14 +49,12 @@ void DotManager::RedrawAll(Canvas& canvas, int drawX, int drawY, int dotRadius, 
 {
 	canvas.Clear();
 
-	// 점 다시 그림
 	for (const CPoint& pt : m_points)
 	{
 		CPoint local(pt.x - drawX, pt.y - drawY);
 		canvas.DrawDot(local.x, local.y, dotRadius);
 	}
 
-	// 3개면 원도 그림
 	if (m_points.size() == 3)
 	{
 		CPoint center;

@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "LabelHelper.h"
-#include <string>
+
+/*-------------------------------------
+  LabelHelper : 좌표 라벨 관리 클래스
+--------------------------------------*/
 
 void LabelHelper::SetStaticTextControls(const std::vector<CStatic*>& staticTexts)
 {
@@ -43,5 +46,5 @@ void LabelHelper::ResetPointLabels()
 
 void LabelHelper::DrawLabelsOnCanvas(Canvas& canvas, int offsetX, int offsetY)
 {
-    // Canvas 위에 좌표를 직접 그릴 때 구현
+    // Canvas 위에 좌표를 직접 그리기
 }

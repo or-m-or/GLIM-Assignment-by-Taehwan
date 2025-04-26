@@ -3,10 +3,6 @@
 #include "MFC_Assignment.h"
 #include "MFC_AssignmentDlg.h"
 #include "afxdialogex.h"
-#include "Utils.h"
-#include <random>    // 랜덤 이동
-#include <chrono>    // sleep
-#include <thread>    
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -179,36 +175,28 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	if (m_mouseState == MouseState::Selecting)
 	{
-		// 클릭 지점 원이 3개 이상 찍었으면 더 추가 안함
 		if (m_dots.Size() >= 3) return;
 
-		// 클릭 시, 새로운 점 추가
-		// 클릭 지점 원 반지름, 정원 두께
 		CString radiusText, thicknessText;
 
-		// 반지름 입력
 		m_editRadius.GetWindowText(radiusText);
-		m_radius = _ttoi(radiusText);  // 문자열 → 정수 변환
+		m_radius = _ttoi(radiusText);  
 		if (m_radius <= 0) m_radius = 10;
 
-		// 두께 입력
-		m_editThickness.GetWindowText(thicknessText); // 두께 입력값 가져오기
+		m_editThickness.GetWindowText(thicknessText); 
 		m_thickness = _ttoi(thicknessText);
 		if (m_thickness <= 0) m_thickness = 5;
 
-		// 클릭한 좌표 저장
 		m_dots.Add(point);
 		m_labelHelper.UpdatePoints(m_dots.GetPoints());
 
-		// 클릭 지점에서 백버퍼 내 좌표로 계산
 		CPoint local(point.x - m_drawX, point.y - m_drawY);
 
-		// 백버퍼 영역 내에서만 그림
 		if (local.x >= 0 && local.y >= 0
 			&& local.x < m_canvas.GetWidth()
 			&& local.y < m_canvas.GetHeight())
 		{
-			m_canvas.DrawDot(local.x, local.y, m_radius); // 점 그리기
+			m_canvas.DrawDot(local.x, local.y, m_radius); // '클릭 지점 원' 그리기
 		}
 
 		// 3점 클릭 시 정원 그리기
@@ -224,17 +212,15 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			{
 				m_canvas.DrawCircle(center, radius, m_thickness);
 
-				// 중심 좌표와 반지름 UI 표시
 				CString centerStr, radiusStr;
 				centerStr.Format(_T("정원 중심: (%d, %d)"), center.x, center.y);
 				radiusStr.Format(_T("정원 반지름: %.2f"), radius);
 				m_staticCenter.SetWindowText(centerStr);
 				m_staticRadius.SetWindowText(radiusStr);
 			}
-			// 세 점 다 찍었으면 상태를 Dragging으로 바꿈
 			m_mouseState = MouseState::Dragging;
 		}
-		Invalidate(); // 화면 갱신
+		Invalidate(); 
 	}
 	else if (m_mouseState == MouseState::Dragging)
 	{
@@ -244,7 +230,7 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			CRect rect(pt.x - 5, pt.y - 5, pt.x + 5, pt.y + 5);
 			if (rect.PtInRect(point))
 			{
-				m_draggedIdx = i;	// 드래그 시작할 점 인덱스 저장
+				m_draggedIdx = i;	
 				SetCapture();
 				break;
 			}
@@ -262,23 +248,25 @@ void CMFCAssignmentDlg::OnBnClickedOk()
 // 초기화 버튼
 void CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer()
 {
-	InitCanvas();			// 캔버스 초기화
-	m_dots.Clear();			// 클릭 지점 좌표 초기화
-	m_labelHelper.ResetPointLabels(); // 클릭 지점 원 좌표 표시 라벨 초기화
-	ResetCircleLabels();	// 정원 정보 표시 라벨 초기화
+	InitCanvas();							// 캔버스 초기화
+	m_dots.Clear();							// 클릭 지점 좌표 초기화
+	m_labelHelper.ResetPointLabels();		// 클릭 지점 원 좌표 표시 라벨 초기화
+	ResetCircleLabels();					// 정원 정보 표시 라벨 초기화
 
-	m_mouseState = MouseState::Selecting; // 선택 모드로 변경
+	m_mouseState = MouseState::Selecting;	// 선택 모드로 변경
 	m_draggedIdx = -1;
 
-	Invalidate();			// 화면 갱신
+	Invalidate();							// 화면 갱신
 }
 
+// 캔버스(백버퍼) 초기화
 void CMFCAssignmentDlg::InitCanvas()
 {
 	m_canvas.SetSize(m_bufferWidth, m_bufferHeight);
 	m_canvas.Init();
 }
 
+// 정원 라벨 초기화
 void CMFCAssignmentDlg::ResetCircleLabels()
 {
 	m_staticCenter.SetWindowText(_T("정원 중심: -"));
@@ -316,13 +304,13 @@ void CMFCAssignmentDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	CDialogEx::OnLButtonUp(nFlags, point);
 }
 
-
+// 랜덤 이동 버튼 (1회)
 void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveOnce()
 {
 	MoveDotsRandomly();
 }
 
-
+// 랜덤 이동 버튼 (10회 반복)
 void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveMultiple()
 {
 	if (m_isRandomMoveRunning)
@@ -340,31 +328,31 @@ void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveMultiple()
 			PostMessage(WM_RANDOM_MOVE);
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
 		}
-		PostMessage(WM_RANDOM_MOVE_DONE); // 이동 끝나면 알려주기
+		PostMessage(WM_RANDOM_MOVE_DONE); 
 		});
 }
 
-
-
+// '클릭 지점 원' 랜덤 이동 메시지 처리
 LRESULT CMFCAssignmentDlg::OnRandomMove(WPARAM wParam, LPARAM lParam)
 {
-	MoveDotsRandomly(); // 메인 스레드에서 안전하게 점 이동
+	MoveDotsRandomly(); 
 	return 0;
 }
 
+// '클릭 지점 원' 이동 완료 메시지 처리
 LRESULT CMFCAssignmentDlg::OnRandomMoveDone(WPARAM wParam, LPARAM lParam)
 {
 	if (m_randomMoveThread.joinable())
-		m_randomMoveThread.join(); // 스레드 종료 기다리기
+		m_randomMoveThread.join(); 
 
-	m_isRandomMoveRunning = false; // 이동 다 끝나면 다시 false로
+	m_isRandomMoveRunning = false; 
 	return 0;
 }
 
-
+// '클릭 지점 원' 랜덤 이동 + 다시 그리기
 void CMFCAssignmentDlg::MoveDotsRandomly()
 {
-	if (m_dots.Size() != 3) return; // 3개 점 찍은 상태에서만 가능
+	if (m_dots.Size() != 3) return;
 
 	m_dots.MoveAllRandomly(m_canvas.GetWidth(), m_canvas.GetHeight(), m_drawX, m_drawY);
 

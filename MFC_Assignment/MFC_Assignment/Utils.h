@@ -1,6 +1,10 @@
 #pragma once
 #include <cmath>
 
+/*-------------------------
+  Utils : 유틸리티 클래스
+--------------------------*/
+
 class Utils
 {
 public:
