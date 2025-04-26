@@ -186,6 +186,7 @@
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="DotManager.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="LabelHelper.h" />
     <ClInclude Include="MFC_Assignment.h" />
     <ClInclude Include="MFC_AssignmentDlg.h" />
     <ClInclude Include="pch.h" />
@@ -196,6 +197,7 @@
   <ItemGroup>
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="DotManager.cpp" />
+    <ClCompile Include="LabelHelper.cpp" />
     <ClCompile Include="MFC_Assignment.cpp" />
     <ClCompile Include="MFC_AssignmentDlg.cpp" />
     <ClCompile Include="pch.cpp">

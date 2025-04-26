@@ -7,9 +7,9 @@
 #include "resource.h"
 
 
-/*-----------------------------
-  CMFCAssignmentApp 앱 진입점
--------------------------------*/
+/*--------------------
+  CMFCAssignmentApp
+---------------------*/
 
 class CMFCAssignmentApp : public CWinApp
 {

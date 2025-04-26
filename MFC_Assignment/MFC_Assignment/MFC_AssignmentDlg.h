@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Canvas.h"
 #include "DotManager.h"
+#include "LabelHelper.h"
 
 /*-----------------------------
   CMFCAssignmentDlg 대화 상자
@@ -27,6 +28,8 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);	// 마우스 클릭 처리
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point); // 드래그 처리
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point); // 드래그 종료 afx_msg...?
 	DECLARE_MESSAGE_MAP()
 
 public:
@@ -36,15 +39,12 @@ public:
 
 private:
 	void InitCanvas();
-	void UpdatePointLabels();
-	void ResetPointLabels();
 	void ResetCircleLabels();
-	void OnMouseMove(UINT nFlags, CPoint point); // 드래그 처리
-	void OnLButtonUp(UINT nFlags, CPoint point); // 드래그 종료 afx_msg...?
-
+	
 private:
 	Canvas m_canvas;			// 선택 지점 원, 세점을 잇는 원 등을 그릴 캔버스
 	DotManager m_dots;			// 클릭 지점 원 관리 객체
+	LabelHelper m_labelHelper;	
 
 	int m_drawX = 10;			// 캔버스 시작 위치 X	
 	int m_drawY = 120;			// 캔버스 시작 위치 Y
@@ -62,6 +62,12 @@ private:
 	CStatic m_staticCenter;		// 정원 중심 좌표
 	CStatic m_staticRadius;		// 정원 반지름
 
-	bool m_dragging = false;	// 드래그 여부
-	int m_draggedIdx = -1;		// 드래그 중인 점 인덱스(m_dots 중에서)
+	enum class MouseState
+	{
+		None,       // 아무것도 안함
+		Selecting,  // 점을 찍는 중
+		Dragging    // 점을 드래그하는 중
+	};
+	MouseState m_mouseState = MouseState::None; // 드래그 모드/비모드 전환
+	int m_draggedIdx = -1;		// 몇 번째 점을 드래그 중인지 인덱스
 };

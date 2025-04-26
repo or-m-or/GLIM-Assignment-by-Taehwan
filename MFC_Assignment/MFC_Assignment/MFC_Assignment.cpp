@@ -8,14 +8,15 @@
 #endif
 
 
-/*-----------------------------
-  CMFCAssignmentApp 앱 진입점
--------------------------------*/
+/*--------------------
+  CMFCAssignmentApp
+---------------------*/
 
 BEGIN_MESSAGE_MAP(CMFCAssignmentApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
+CMFCAssignmentApp theApp;
 
 CMFCAssignmentApp::CMFCAssignmentApp()
 {
@@ -25,8 +26,6 @@ CMFCAssignmentApp::CMFCAssignmentApp()
 	// TODO: 여기에 생성 코드를 추가합니다.
 	// InitInstance에 모든 중요한 초기화 작업을 배치합니다.
 }
-
-CMFCAssignmentApp theApp;
 
 BOOL CMFCAssignmentApp::InitInstance()
 {

@@ -111,6 +111,9 @@ BOOL CMFCAssignmentDlg::OnInitDialog()
 	InitCanvas(); // 백버퍼 초기화
 	m_editRadius.SetWindowText(_T("10"));	// 클릭 지점 원 반지름
 	m_editThickness.SetWindowText(_T("5")); // 정원 두께
+	m_mouseState = MouseState::Selecting;	// 처음엔 점을 찍는 모드로 시작
+
+	m_labelHelper.SetStaticTextControls({ &m_staticPoint1, &m_staticPoint2, &m_staticPoint3 });
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환
 }
@@ -165,9 +168,67 @@ HCURSOR CMFCAssignmentDlg::OnQueryDragIcon()
 // 마우스 클릭 시 클릭 지점 원 그리기
 void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
-	if (m_dots.Size() >= 3)
+	if (m_mouseState == MouseState::Selecting)
 	{
-		bool found = false;
+		// 클릭 지점 원이 3개 이상 찍었으면 더 추가 안함
+		if (m_dots.Size() >= 3) return;
+
+		// 클릭 시, 새로운 점 추가
+		// 클릭 지점 원 반지름, 정원 두께
+		CString radiusText, thicknessText;
+
+		// 반지름 입력
+		m_editRadius.GetWindowText(radiusText);
+		m_radius = _ttoi(radiusText);  // 문자열 → 정수 변환
+		if (m_radius <= 0) m_radius = 10;
+
+		// 두께 입력
+		m_editThickness.GetWindowText(thicknessText); // 두께 입력값 가져오기
+		m_thickness = _ttoi(thicknessText);
+		if (m_thickness <= 0) m_thickness = 5;
+
+		// 클릭한 좌표 저장
+		m_dots.Add(point);
+		m_labelHelper.UpdatePoints(m_dots.GetPoints());
+
+		// 클릭 지점에서 백버퍼 내 좌표로 계산
+		CPoint local(point.x - m_drawX, point.y - m_drawY);
+
+		// 백버퍼 영역 내에서만 그림
+		if (local.x >= 0 && local.y >= 0
+			&& local.x < m_canvas.GetWidth()
+			&& local.y < m_canvas.GetHeight())
+		{
+			m_canvas.DrawDot(local.x, local.y, m_radius); // 점 그리기
+		}
+
+		// 3점 클릭 시 정원 그리기
+		if (m_dots.Size() == 3)
+		{
+			CPoint center;
+			double radius;
+			CPoint p1 = m_dots.GetPoint(0) - CPoint(m_drawX, m_drawY);
+			CPoint p2 = m_dots.GetPoint(1) - CPoint(m_drawX, m_drawY);
+			CPoint p3 = m_dots.GetPoint(2) - CPoint(m_drawX, m_drawY);
+
+			if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
+			{
+				m_canvas.DrawCircle(center, radius, m_thickness);
+
+				// 중심 좌표와 반지름 UI 표시
+				CString centerStr, radiusStr;
+				centerStr.Format(_T("정원 중심: (%d, %d)"), center.x, center.y);
+				radiusStr.Format(_T("정원 반지름: %.2f"), radius);
+				m_staticCenter.SetWindowText(centerStr);
+				m_staticRadius.SetWindowText(radiusStr);
+			}
+			// 세 점 다 찍었으면 상태를 Dragging으로 바꿈
+			m_mouseState = MouseState::Dragging;
+		}
+		Invalidate(); // 화면 갱신
+	}
+	else if (m_mouseState == MouseState::Dragging)
+	{
 		for (int i = 0; i < 3; ++i)
 		{
 			CPoint pt = m_dots.GetPoint(i);
@@ -175,67 +236,11 @@ void CMFCAssignmentDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			if (rect.PtInRect(point))
 			{
 				m_draggedIdx = i;	// 드래그 시작할 점 인덱스 저장
-				SetCapture();		// 마우스 캡처
-				found = true;
+				SetCapture();
 				break;
 			}
 		}
-
-		if (found) return;
-		else return; // 3개 클릭된 이후 다른 영역 클릭은 무시
 	}
-
-	// 클릭 지점 원 반지름, 정원 두께
-	CString radiusText, thicknessText;
-
-	// 반지름 입력
-	m_editRadius.GetWindowText(radiusText);
-	m_radius = _ttoi(radiusText);  // 문자열 → 정수 변환
-	if (m_radius <= 0) m_radius = 10;
-
-	// 두께 입력
-	m_editThickness.GetWindowText(thicknessText); // 두께 입력값 가져오기
-	m_thickness = _ttoi(thicknessText);
-	if (m_thickness <= 0) m_thickness = 5;
-
-	// 클릭한 좌표 저장
-	m_dots.Add(point);
-	UpdatePointLabels(); 	// Static Text에 좌표 표시
-
-	// 클릭 지점에서 백버퍼 내 좌표로 계산
-	CPoint local(point.x - m_drawX, point.y - m_drawY);
-
-	// 백버퍼 영역 내에서만 그림
-	if (local.x >= 0 && local.y >= 0 
-		&& local.x < m_canvas.GetWidth() 
-		&& local.y < m_canvas.GetHeight())
-	{
-		m_canvas.DrawDot(local.x, local.y, m_radius); // 점 그리기
-	}
-
-	// 3점 클릭 시 정원 그리기
-	if (m_dots.Size() == 3)
-	{
-		CPoint center;
-		double radius;
-		CPoint p1 = m_dots.GetPoint(0) - CPoint(m_drawX, m_drawY);
-		CPoint p2 = m_dots.GetPoint(1) - CPoint(m_drawX, m_drawY);
-		CPoint p3 = m_dots.GetPoint(2) - CPoint(m_drawX, m_drawY);
-
-		if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
-		{
-			m_canvas.DrawCircle(center, radius, m_thickness); 
-
-			// 중심 좌표와 반지름 UI 표시
-			CString centerStr, radiusStr;
-			centerStr.Format(_T("정원 중심: (%d, %d)"), center.x, center.y);
-			radiusStr.Format(_T("정원 반지름: %.2f"), radius);
-			m_staticCenter.SetWindowText(centerStr);
-			m_staticRadius.SetWindowText(radiusStr);
-		}
-	}
-
-	Invalidate(); // 화면 갱신
 	CDialogEx::OnLButtonDown(nFlags, point);
 }
 
@@ -256,46 +261,19 @@ void CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer()
 {
 	InitCanvas();			// 캔버스 초기화
 	m_dots.Clear();			// 클릭 지점 좌표 초기화
-	ResetPointLabels();     // 클릭 지점 원 좌표 표시 라벨 초기화
+	m_labelHelper.ResetPointLabels(); // 클릭 지점 원 좌표 표시 라벨 초기화
 	ResetCircleLabels();	// 정원 정보 표시 라벨 초기화
+
+	m_mouseState = MouseState::Selecting; // 선택 모드로 변경
+	m_draggedIdx = -1;
+
 	Invalidate();			// 화면 갱신
 }
 
 void CMFCAssignmentDlg::InitCanvas()
 {
-	m_canvas.Init(m_bufferWidth, m_bufferHeight);
-}
-
-void CMFCAssignmentDlg::UpdatePointLabels()
-{
-	if (m_dots.Size() > 0)
-	{
-		CPoint pt = m_dots.GetPoint(0);
-		CString txt;
-		txt.Format(_T("클릭 지점 1: (%d, %d)"), pt.x, pt.y);
-		m_staticPoint1.SetWindowText(txt);
-	}
-	if (m_dots.Size() > 1)
-	{
-		CPoint pt = m_dots.GetPoint(1);
-		CString txt;
-		txt.Format(_T("클릭 지점 2: (%d, %d)"), pt.x, pt.y);
-		m_staticPoint2.SetWindowText(txt);
-	}
-	if (m_dots.Size() > 2)
-	{
-		CPoint pt = m_dots.GetPoint(2);
-		CString txt;
-		txt.Format(_T("클릭 지점 3: (%d, %d)"), pt.x, pt.y);
-		m_staticPoint3.SetWindowText(txt);
-	}
-}
-
-void CMFCAssignmentDlg::ResetPointLabels()
-{
-	m_staticPoint1.SetWindowText(_T("클릭 지점 1: -"));
-	m_staticPoint2.SetWindowText(_T("클릭 지점 2: -"));
-	m_staticPoint3.SetWindowText(_T("클릭 지점 3: -"));
+	m_canvas.SetSize(m_bufferWidth, m_bufferHeight);
+	m_canvas.Init();
 }
 
 void CMFCAssignmentDlg::ResetCircleLabels()
@@ -307,42 +285,18 @@ void CMFCAssignmentDlg::ResetCircleLabels()
 // 드래그 처리
 void CMFCAssignmentDlg::OnMouseMove(UINT nFlags, CPoint point)
 {
-	if (m_draggedIdx != -1 && (nFlags & MK_LBUTTON))
+	if (m_mouseState == MouseState::Dragging && (nFlags & MK_LBUTTON))
 	{
-		// 좌표 갱신
-		m_dots.UpdatePoint(m_draggedIdx, point);
 
-		// 캔버스 다시 그리기
-		m_canvas.Clear();
-
-		// 점 다시 그림
-		for (int i = 0; i < 3; ++i)
+		if (m_draggedIdx != -1)
 		{
-			CPoint local = m_dots.GetPoint(i) - CPoint(m_drawX, m_drawY);
-			m_canvas.DrawDot(local.x, local.y, m_radius);
+			// 좌표 갱신
+			m_dots.UpdatePoint(m_draggedIdx, point);
+			m_dots.RedrawAll(m_canvas, m_drawX, m_drawY, m_radius, m_thickness);
+			m_labelHelper.UpdatePoints(m_dots.GetPoints());
+			Invalidate(); // 화면 갱신
+			UpdateWindow();
 		}
-
-		// 원 다시 그림
-		CPoint center;
-		double radius;
-		CPoint p1 = m_dots.GetPoint(0) - CPoint(m_drawX, m_drawY);
-		CPoint p2 = m_dots.GetPoint(1) - CPoint(m_drawX, m_drawY);
-		CPoint p3 = m_dots.GetPoint(2) - CPoint(m_drawX, m_drawY);
-
-		if (Utils::GetCircleFromThreePoints(p1, p2, p3, center, radius))
-		{
-			m_canvas.DrawCircle(center, radius, m_thickness);
-
-			CString centerStr, radiusStr;
-			centerStr.Format(_T("정원 중심: (%d, %d)"), center.x, center.y);
-			radiusStr.Format(_T("정원 반지름: %.2f"), radius);
-			m_staticCenter.SetWindowText(centerStr);
-			m_staticRadius.SetWindowText(radiusStr);
-		}
-
-		UpdatePointLabels();
-		Invalidate(); // 화면 갱신
-		UpdateWindow();
 	}
 	CDialogEx::OnMouseMove(nFlags, point);
 }
@@ -351,7 +305,7 @@ void CMFCAssignmentDlg::OnMouseMove(UINT nFlags, CPoint point)
 void CMFCAssignmentDlg::OnLButtonUp(UINT nFlags, CPoint point)
 {
 
-	if (m_draggedIdx != -1)
+	if (m_mouseState == MouseState::Dragging)
 	{
 		m_draggedIdx = -1;
 		ReleaseCapture(); // 마우스 캡처 해제

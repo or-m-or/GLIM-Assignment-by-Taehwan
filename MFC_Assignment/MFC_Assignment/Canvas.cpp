@@ -10,14 +10,18 @@ Canvas::~Canvas()
 {
 }
 
-bool Canvas::Init(int width, int height)
+bool Canvas::Init()
 {
-	// 백버퍼 이미 존재할 경우
+	// 캔버스 사이즈 설정 안한경우
+	if (m_width == 0 || m_height == 0)
+		return false; 
+
+	// 캔버스 이미 존재할 경우
 	if (!m_canvas.IsNull())
 		m_canvas.Destroy();
 
 	// 백버퍼 새로 생성
-	m_canvas.Create(width, -height, 8); // top-down 640x480 8bpp
+	m_canvas.Create(m_width, -m_height, 8); // top-down 640x480 8bpp
 
 	// 팔레트 설정
 	RGBQUAD palette[256];
@@ -27,6 +31,12 @@ bool Canvas::Init(int width, int height)
 
 	Clear();
 	return true;
+}
+
+void Canvas::SetSize(int width, int height)
+{
+	m_width = width;
+	m_height = height;
 }
 
 void Canvas::Clear()
