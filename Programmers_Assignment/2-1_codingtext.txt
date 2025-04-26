@@ -1,0 +1,12 @@
+using namespace std;
+constexpr int LAMB_SKEWERS_PRICE = 12'000;
+constexpr int BEVERAGE_PRICE = 2'000;
+
+int solution(int n, int k) 
+{
+    int service = n / 10;
+    int beverageCount = k - service;
+    
+    int answer = (LAMB_SKEWERS_PRICE * n) + (BEVERAGE_PRICE * beverageCount);
+    return answer;
+}

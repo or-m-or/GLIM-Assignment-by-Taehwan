@@ -1,0 +1,54 @@
+#include <vector>
+#include <array>
+#include <map>
+#include <cmath>        
+#include <algorithm>    
+using namespace std;
+
+
+int solution(int a, int b, int c, int d) {
+    array<int, 4> diceNums = {a, b, c, d};  
+    map<int, int> diceFreq;                 
+
+    for (int diceNum : diceNums) 
+        diceFreq[diceNum]++;
+    
+    int diceTypeCount = diceFreq.size(); 
+    
+    int four = 0;
+    int three = 0;
+    vector<int> two;
+    vector<int> one;
+
+    for (auto [num, freq] : diceFreq) {
+        if (freq == 4) {
+            four = num;
+        } else if (freq == 3) {
+            three = num;
+        } else if (freq == 2) {
+            two.push_back(num);
+        } else if (freq == 1) {
+            one.push_back(num);
+        }
+    }
+    
+    if (diceTypeCount == 1)
+        return 1111 * four;
+    else if (diceTypeCount == 2)
+    {
+        if (three != 0)
+            return (10 * three + one[0]) * (10 * three + one[0]);
+        else
+        {
+            return (two[0]+two[1]) * abs(two[0]-two[1]);
+        }
+    }   
+    else if (diceTypeCount == 3)
+    {
+        return one[0] * one[1];
+    }
+    else if (diceTypeCount == 4)
+        return *min_element(one.begin(), one.end());
+    
+    return 0;
+}
