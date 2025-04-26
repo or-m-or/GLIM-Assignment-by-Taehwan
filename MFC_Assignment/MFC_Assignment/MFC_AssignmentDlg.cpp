@@ -74,6 +74,8 @@ BEGIN_MESSAGE_MAP(CMFCAssignmentDlg, CDialogEx)
 	ON_BN_CLICKED(IDOK, &CMFCAssignmentDlg::OnBnClickedOk)
 	ON_BN_CLICKED(IDCANCEL, &CMFCAssignmentDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BTN_INITIMAGE, &CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer)
+	ON_BN_CLICKED(IDC_BTN_RANDOM_MOVE_ONCE, &CMFCAssignmentDlg::OnBnClickedBtnRandomMoveOnce)
+	ON_BN_CLICKED(IDC_BTN_RANDOM_MOVE_MULTIPLE, &CMFCAssignmentDlg::OnBnClickedBtnRandomMoveMultiple)
 END_MESSAGE_MAP()
 
 
@@ -114,6 +116,9 @@ BOOL CMFCAssignmentDlg::OnInitDialog()
 	m_mouseState = MouseState::Selecting;	// 처음엔 점을 찍는 모드로 시작
 
 	m_labelHelper.SetStaticTextControls({ &m_staticPoint1, &m_staticPoint2, &m_staticPoint3 });
+
+	// 랜덤 이동 위해 사용
+	srand(static_cast<unsigned int>(time(0)));
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환
 }
@@ -311,4 +316,19 @@ void CMFCAssignmentDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		ReleaseCapture(); // 마우스 캡처 해제
 	}
 	CDialogEx::OnLButtonUp(nFlags, point);
+}
+
+
+void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveOnce()
+{
+	m_dots.MoveAllRandomly(m_bufferWidth, m_bufferHeight);
+	m_dots.RedrawAll(m_canvas, m_drawX, m_drawY, m_radius, m_thickness);
+	m_labelHelper.UpdatePoints(m_dots.GetPoints());
+	Invalidate();
+}
+
+
+void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveMultiple()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }

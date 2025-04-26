@@ -15,6 +15,9 @@
 #define IDC_EDIT_CIRCLE_THICKNESS       1006
 #define IDC_STATIC_CIRCLE_CENTER        1007
 #define IDC_STATIC_CIRCLE_RADIUS        1008
+#define IDC_BTN_RANDOM_MOVE_ONCE        1009
+#define IDC_BUTTON2                     1010
+#define IDC_BTN_RANDOM_MOVE_MULTIPLE    1010
 
 // Next default values for new objects
 // 
@@ -22,7 +25,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1009
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

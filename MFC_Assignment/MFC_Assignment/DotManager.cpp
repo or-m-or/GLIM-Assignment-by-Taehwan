@@ -2,6 +2,8 @@
 #include "DotManager.h"
 #include "Canvas.h"
 #include "Utils.h"
+#include <cstdlib> // rand(), srand()
+#include <ctime>   // time()
 
 DotManager::DotManager()
 {
@@ -72,5 +74,18 @@ void DotManager::RedrawAll(Canvas& canvas, int drawX, int drawY, int dotRadius, 
 		{
 			canvas.DrawCircle(center, radius, thickness);
 		}
+	}
+}
+
+void DotManager::MoveAllRandomly(int canvasWidth, int canvasHeight)
+{
+	if (m_points.empty()) return;
+
+	for (CPoint& pt : m_points)
+	{
+		int margin = 20; // 너무 테두리에 붙지 않게 여백
+
+		pt.x = margin + rand() % (canvasWidth - 2 * margin);
+		pt.y = margin + rand() % (canvasHeight - 2 * margin);
 	}
 }

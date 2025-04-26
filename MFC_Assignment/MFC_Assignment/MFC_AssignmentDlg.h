@@ -36,6 +36,8 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedBtnInitBackBuffer();
+	afx_msg void OnBnClickedBtnRandomMoveOnce();
+	afx_msg void OnBnClickedBtnRandomMoveMultiple();
 
 private:
 	void InitCanvas();
@@ -69,5 +71,5 @@ private:
 		Dragging    // 점을 드래그하는 중
 	};
 	MouseState m_mouseState = MouseState::None; // 드래그 모드/비모드 전환
-	int m_draggedIdx = -1;		// 몇 번째 점을 드래그 중인지 인덱스
+	int m_draggedIdx = -1;		// 몇 번째 점을 드래그 중인지 인덱스		
 };
