@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include <cstdlib> // rand(), srand()
 #include <ctime>   // time()
+#include <random>
 
 DotManager::DotManager()
 {
@@ -77,15 +78,20 @@ void DotManager::RedrawAll(Canvas& canvas, int drawX, int drawY, int dotRadius, 
 	}
 }
 
-void DotManager::MoveAllRandomly(int canvasWidth, int canvasHeight)
+void DotManager::MoveAllRandomly(int canvasWidth, int canvasHeight, int drawX, int drawY)
 {
 	if (m_points.empty()) return;
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+	int margin = 20;
+	std::uniform_int_distribution<> distX(drawX + margin, drawX + canvasWidth - margin - 1);
+	std::uniform_int_distribution<> distY(drawY + margin, drawY + canvasHeight - margin - 1);
+
 	for (CPoint& pt : m_points)
 	{
-		int margin = 20; // 너무 테두리에 붙지 않게 여백
-
-		pt.x = margin + rand() % (canvasWidth - 2 * margin);
-		pt.y = margin + rand() % (canvasHeight - 2 * margin);
+		pt.x = distX(gen);
+		pt.y = distY(gen);
 	}
 }

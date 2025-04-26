@@ -15,8 +15,8 @@ public:
 	bool UpdatePoint(int idx, const CPoint& pt);
 
 	void RedrawAll(Canvas& canvas, int drawX, int drawY, int dotRadius, int thickness); // 드래그 시 다시 그림
-	void MoveAllRandomly(int canvasWidth, int canvasHeight);
 
+	void MoveAllRandomly(int canvasWidth, int canvasHeight, int drawX, int drawY);
 
 private:
 	std::vector<CPoint> m_points;			// 클릭된 점 목록

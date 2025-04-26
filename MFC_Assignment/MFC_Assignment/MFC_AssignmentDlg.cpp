@@ -4,6 +4,9 @@
 #include "MFC_AssignmentDlg.h"
 #include "afxdialogex.h"
 #include "Utils.h"
+#include <random>    // 랜덤 이동
+#include <chrono>    // sleep
+#include <thread>    
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -72,10 +75,11 @@ BEGIN_MESSAGE_MAP(CMFCAssignmentDlg, CDialogEx)
 	ON_WM_MOUSEMOVE()	// 드래그
 	ON_WM_LBUTTONUP()	// 클릭 해제
 	ON_BN_CLICKED(IDOK, &CMFCAssignmentDlg::OnBnClickedOk)
-	ON_BN_CLICKED(IDCANCEL, &CMFCAssignmentDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BTN_INITIMAGE, &CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer)
 	ON_BN_CLICKED(IDC_BTN_RANDOM_MOVE_ONCE, &CMFCAssignmentDlg::OnBnClickedBtnRandomMoveOnce)
 	ON_BN_CLICKED(IDC_BTN_RANDOM_MOVE_MULTIPLE, &CMFCAssignmentDlg::OnBnClickedBtnRandomMoveMultiple)
+	ON_MESSAGE(WM_RANDOM_MOVE, &CMFCAssignmentDlg::OnRandomMove) // 랜덤 이동
+	ON_MESSAGE(WM_RANDOM_MOVE_DONE, &CMFCAssignmentDlg::OnRandomMoveDone)
 END_MESSAGE_MAP()
 
 
@@ -255,12 +259,6 @@ void CMFCAssignmentDlg::OnBnClickedOk()
 	CDialogEx::OnOK();
 }
 
-// 취소 버튼
-void CMFCAssignmentDlg::OnBnClickedCancel()
-{
-	CDialogEx::OnCancel();
-}
-
 // 초기화 버튼
 void CMFCAssignmentDlg::OnBnClickedBtnInitBackBuffer()
 {
@@ -321,14 +319,57 @@ void CMFCAssignmentDlg::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveOnce()
 {
-	m_dots.MoveAllRandomly(m_bufferWidth, m_bufferHeight);
-	m_dots.RedrawAll(m_canvas, m_drawX, m_drawY, m_radius, m_thickness);
-	m_labelHelper.UpdatePoints(m_dots.GetPoints());
-	Invalidate();
+	MoveDotsRandomly();
 }
 
 
 void CMFCAssignmentDlg::OnBnClickedBtnRandomMoveMultiple()
 {
-	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	if (m_isRandomMoveRunning)
+		return; // 이미 실행 중이면 무시
+
+	m_isRandomMoveRunning = true;
+
+	// 이전에 이미 돌아가던 스레드가 있으면 join하고 시작
+	if (m_randomMoveThread.joinable())
+		m_randomMoveThread.join();
+
+	m_randomMoveThread = std::thread([this]() {
+		for (int i = 0; i < 10; ++i)
+		{
+			PostMessage(WM_RANDOM_MOVE);
+			std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		}
+		PostMessage(WM_RANDOM_MOVE_DONE); // 이동 끝나면 알려주기
+		});
+}
+
+
+
+LRESULT CMFCAssignmentDlg::OnRandomMove(WPARAM wParam, LPARAM lParam)
+{
+	MoveDotsRandomly(); // 메인 스레드에서 안전하게 점 이동
+	return 0;
+}
+
+LRESULT CMFCAssignmentDlg::OnRandomMoveDone(WPARAM wParam, LPARAM lParam)
+{
+	if (m_randomMoveThread.joinable())
+		m_randomMoveThread.join(); // 스레드 종료 기다리기
+
+	m_isRandomMoveRunning = false; // 이동 다 끝나면 다시 false로
+	return 0;
+}
+
+
+void CMFCAssignmentDlg::MoveDotsRandomly()
+{
+	if (m_dots.Size() != 3) return; // 3개 점 찍은 상태에서만 가능
+
+	m_dots.MoveAllRandomly(m_canvas.GetWidth(), m_canvas.GetHeight(), m_drawX, m_drawY);
+
+	m_dots.RedrawAll(m_canvas, m_drawX, m_drawY, m_radius, m_thickness);
+	m_labelHelper.UpdatePoints(m_dots.GetPoints());
+	Invalidate();
+	UpdateWindow();
 }

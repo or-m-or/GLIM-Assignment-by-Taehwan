@@ -2,6 +2,10 @@
 #include "Canvas.h"
 #include "DotManager.h"
 #include "LabelHelper.h"
+#include <thread>
+
+#define WM_RANDOM_MOVE (WM_USER + 1)
+#define WM_RANDOM_MOVE_DONE (WM_USER + 2)
 
 /*-----------------------------
   CMFCAssignmentDlg 대화 상자
@@ -30,11 +34,12 @@ protected:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);	// 마우스 클릭 처리
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point); // 드래그 처리
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point); // 드래그 종료 afx_msg...?
+	afx_msg LRESULT OnRandomMove(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnRandomMoveDone(WPARAM wParam, LPARAM lParam);
 	DECLARE_MESSAGE_MAP()
 
 public:
 	afx_msg void OnBnClickedOk();
-	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedBtnInitBackBuffer();
 	afx_msg void OnBnClickedBtnRandomMoveOnce();
 	afx_msg void OnBnClickedBtnRandomMoveMultiple();
@@ -42,6 +47,7 @@ public:
 private:
 	void InitCanvas();
 	void ResetCircleLabels();
+	void MoveDotsRandomly();	// 클릭 지점 원 랜덤 이동
 	
 private:
 	Canvas m_canvas;			// 선택 지점 원, 세점을 잇는 원 등을 그릴 캔버스
@@ -72,4 +78,8 @@ private:
 	};
 	MouseState m_mouseState = MouseState::None; // 드래그 모드/비모드 전환
 	int m_draggedIdx = -1;		// 몇 번째 점을 드래그 중인지 인덱스		
+
+	std::thread m_randomMoveThread;   // 랜덤 이동 스레드
+	bool m_isRandomMoveRunning = false; // 이동 중 플래그
+
 };
